@@ -1,99 +1,257 @@
+"""Integration tests - works without external APIs in CI."""
+
 import pytest
-import asyncio
-from pathlib import Path
-from context_nexus import ContextNexus, Agent
-from context_nexus.core.types import Document
+from context_nexus.core.types import Document, Chunk
+from context_nexus.ingestion import Chunker, VectorIndexer, GraphIndexer
 
 
-@pytest.fixture
-async def nexus_with_data():
-    """Create a nexus instance with sample data."""
-    nexus = ContextNexus()
+# ============================================================================
+# UNIT TESTS (No external dependencies - always run in CI)
+# ============================================================================
+
+class TestChunker:
+    """Test document chunking."""
     
-    # Create sample documents
-    doc1 = Document(
-        content="Python is a high-level programming language known for its simplicity.",
-        source="python.md",
-        id="doc1"
-    )
-    doc2 = Document(
-        content="Machine learning is a subset of artificial intelligence.",
-        source="ml.md",
-        id="doc2"
-    )
+    def test_chunks_document(self):
+        """Test that chunker properly splits documents."""
+        doc = Document(
+            content="This is a test. " * 100,  # Long enough to chunk
+            source="test.md",
+            id="doc1"
+        )
+        
+        chunker = Chunker(chunk_size=100, chunk_overlap=10)
+        chunks = chunker.chunk_documents([doc])
+        
+        assert len(chunks) > 1
+        assert all(isinstance(c, Chunk) for c in chunks)
+        assert all(c.content for c in chunks)
+        assert all(c.document_id == "doc1" for c in chunks)
     
-    await nexus.ingest([doc1, doc2])
-    return nexus
-
-
-@pytest.mark.asyncio
-async def test_ingest_documents(nexus_with_data):
-    """Test document ingestion."""
-    stats = nexus_with_data.stats
-    assert stats.documents == 2
-    assert stats.chunks > 0
-    assert stats.graph_nodes > 0
-
-
-@pytest.mark.asyncio
-async def test_retrieve():
-    """Test retrieval functionality."""
-    nexus = ContextNexus()
-    doc = Document(
-        content="Context Nexus is an SDK for building agentic AI systems.",
-        source="readme.md",
-        id="doc1"
-    )
-    await nexus.ingest([doc])
+    def test_handles_short_content(self):
+        """Test short content (no chunking needed)."""
+        doc = Document(content="Short text.", source="short.md", id="s1")
+        chunker = Chunker(chunk_size=1000)
+        chunks = chunker.chunk_documents([doc])
+        
+        assert len(chunks) == 1
+        assert chunks[0].content == "Short text."
     
-    results = await nexus.retrieve("What is Context Nexus?", limit=5)
-    assert len(results) > 0
-    assert results[0].score > 0
+    def test_preserves_metadata(self):
+        """Test metadata preservation."""
+        doc = Document(
+            content="Test content. " * 50,
+            source="meta.md",
+            id="m1",
+            metadata={"author": "test"}
+        )
+        
+        chunker = Chunker(chunk_size=100)
+        chunks = chunker.chunk_documents([doc])
+        
+        assert all(c.metadata.get("author") == "test" for c in chunks)
 
 
-@pytest.mark.asyncio
-async def test_agent_query(nexus_with_data):
-    """Test agent query with real data."""
-    agent = Agent(nexus_with_data, token_budget=8000)
+class TestVectorIndexer:
+    """Test FAISS vector indexing."""
     
-    try:
-        answer = await agent.query("What is Python?")
-        assert answer.text
-        assert len(answer.sources) > 0
-        assert answer.confidence > 0
-    finally:
-        await agent.close()
+    def test_adds_chunks(self):
+        """Test adding chunks to index."""
+        indexer = VectorIndexer(dimensions=384)
+        
+        chunks = [
+            Chunk(content="test1", document_id="d1", index=0, embedding=[0.1] * 384),
+            Chunk(content="test2", document_id="d1", index=1, embedding=[0.2] * 384),
+        ]
+        
+        count = indexer.add_chunks(chunks)
+        assert count == 2
+        assert indexer.total_chunks == 2
+    
+    def test_search_returns_results(self):
+        """Test similarity search."""
+        indexer = VectorIndexer(dimensions=384)
+        
+        # Create chunks with distinct embeddings
+        chunks = [
+            Chunk(content="python programming", document_id="d1", index=0, 
+                  embedding=[1.0] + [0.0] * 383),
+            Chunk(content="machine learning", document_id="d1", index=1, 
+                  embedding=[0.0] + [1.0] + [0.0] * 382),
+        ]
+        indexer.add_chunks(chunks)
+        
+        # Search for something similar to first chunk
+        query = [1.0] + [0.0] * 383
+        results = indexer.search(query, k=2)
+        
+        assert len(results) == 2
+        assert results[0][0].content == "python programming"
+        assert results[0][1] > results[1][1]  # Higher score for match
+    
+    def test_handles_empty_index(self):
+        """Test search on empty index."""
+        indexer = VectorIndexer(dimensions=384)
+        query = [0.1] * 384
+        results = indexer.search(query, k=5)
+        
+        assert results == []
 
 
-@pytest.mark.asyncio
-async def test_agent_query_with_trace(nexus_with_data):
-    """Test agent query with tracing enabled."""
-    agent = Agent(nexus_with_data)
+class TestGraphIndexer:
+    """Test NetworkX graph indexing."""
     
-    try:
-        answer = await agent.query("Explain machine learning", trace=True)
-        assert answer.trace is not None
-        assert len(answer.trace.steps) > 0
-        assert answer.trace.latency_ms > 0
-        assert answer.trace.chunks_retrieved > 0
-    finally:
-        await agent.close()
+    def test_builds_graph(self):
+        """Test graph construction."""
+        indexer = GraphIndexer()
+        
+        chunks = [
+            Chunk(content="chunk1", document_id="doc1", index=0),
+            Chunk(content="chunk2", document_id="doc1", index=1),
+            Chunk(content="chunk3", document_id="doc1", index=2),
+        ]
+        
+        count = indexer.add_chunks(chunks)
+        assert count == 3
+        assert indexer.total_nodes == 3
+        assert indexer.total_edges == 2  # Sequential links
+    
+    def test_links_sequential_chunks(self):
+        """Test that sequential chunks are linked."""
+        indexer = GraphIndexer()
+        
+        chunks = [
+            Chunk(content="first", document_id="doc1", index=0),
+            Chunk(content="second", document_id="doc1", index=1),
+        ]
+        indexer.add_chunks(chunks)
+        
+        # Check edge exists
+        neighbors = indexer.get_neighbors(chunks[0], depth=1)
+        assert "doc1:1" in neighbors
+    
+    def test_separate_documents(self):
+        """Test chunks from different docs aren't linked."""
+        indexer = GraphIndexer()
+        
+        chunks = [
+            Chunk(content="doc1 chunk", document_id="doc1", index=0),
+            Chunk(content="doc2 chunk", document_id="doc2", index=0),
+        ]
+        indexer.add_chunks(chunks)
+        
+        assert indexer.total_nodes == 2
+        assert indexer.total_edges == 0  # No cross-doc links
 
 
-@pytest.mark.asyncio
-async def test_token_budget_management():
-    """Test that token budget is respected."""
-    nexus = ContextNexus()
+class TestCoreTypes:
+    """Test core data types."""
     
-    # Create large document
-    large_content = " ".join(["word"] * 10000)
-    doc = Document(content=large_content, source="large.md", id="large")
+    def test_document_creation(self):
+        """Test Document dataclass."""
+        doc = Document(
+            content="Test content",
+            source="test.md",
+            id="doc1",
+            metadata={"key": "value"}
+        )
+        
+        assert doc.content == "Test content"
+        assert doc.source == "test.md"
+        assert doc.id == "doc1"
+        assert doc.metadata["key"] == "value"
     
-    await nexus.ingest([doc])
+    def test_chunk_creation(self):
+        """Test Chunk dataclass."""
+        chunk = Chunk(
+            content="Chunk content",
+            document_id="doc1",
+            index=0,
+            embedding=[0.1, 0.2, 0.3]
+        )
+        
+        assert chunk.content == "Chunk content"
+        assert chunk.document_id == "doc1"
+        assert chunk.index == 0
+        assert len(chunk.embedding) == 3
+
+
+# ============================================================================
+# PERFORMANCE TESTS
+# ============================================================================
+
+class TestPerformance:
+    """Performance benchmarks for CI."""
     
-    agent = Agent(nexus, token_budget=1000)
-    try:
-        answer = await agent.query("What is this about?")
-        assert answer.text  # Should still get an answer despite truncation
-    finally:
-        await agent.close()
+    def test_chunking_performance(self):
+        """Test chunking is fast."""
+        import time
+        
+        # Create large document
+        large_doc = Document(
+            content="This is a sentence. " * 10000,
+            source="large.md",
+            id="large"
+        )
+        
+        chunker = Chunker(chunk_size=500, chunk_overlap=50)
+        
+        start = time.time()
+        chunks = chunker.chunk_documents([large_doc])
+        elapsed = time.time() - start
+        
+        assert elapsed < 1.0, f"Chunking too slow: {elapsed:.2f}s"
+        assert len(chunks) > 100
+    
+    def test_indexing_performance(self):
+        """Test vector indexing is fast."""
+        import time
+        
+        indexer = VectorIndexer(dimensions=384)
+        
+        # Create 1000 chunks
+        chunks = [
+            Chunk(
+                content=f"chunk {i}",
+                document_id="d1",
+                index=i,
+                embedding=[float(i % 10) / 10] * 384
+            )
+            for i in range(1000)
+        ]
+        
+        start = time.time()
+        indexer.add_chunks(chunks)
+        elapsed = time.time() - start
+        
+        assert elapsed < 0.5, f"Indexing too slow: {elapsed:.2f}s"
+    
+    def test_search_performance(self):
+        """Test search latency is low."""
+        import time
+        
+        indexer = VectorIndexer(dimensions=384)
+        
+        # Add chunks
+        chunks = [
+            Chunk(
+                content=f"chunk {i}",
+                document_id="d1",
+                index=i,
+                embedding=[float(i % 10) / 10] * 384
+            )
+            for i in range(1000)
+        ]
+        indexer.add_chunks(chunks)
+        
+        # Run searches
+        query = [0.5] * 384
+        latencies = []
+        
+        for _ in range(100):
+            start = time.time()
+            indexer.search(query, k=10)
+            latencies.append((time.time() - start) * 1000)
+        
+        avg_latency = sum(latencies) / len(latencies)
+        assert avg_latency < 5, f"Search too slow: {avg_latency:.2f}ms"
