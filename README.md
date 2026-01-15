@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/images/feature_overview.png" alt="Context Nexus" width="400">
-</p>
-
 <h1 align="center">Context Nexus</h1>
 
 <p align="center">
@@ -12,6 +8,10 @@
   <a href="https://pypi.org/project/context-nexus/"><img src="https://img.shields.io/pypi/v/context-nexus?color=blue" alt="PyPI"></a>
   <a href="https://pypi.org/project/context-nexus/"><img src="https://img.shields.io/pypi/pyversions/context-nexus" alt="Python"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+</p>
+
+<p align="center">
+  <img src="docs/images/feature_overview.png" alt="Context Nexus" width="400">
 </p>
 
 <p align="center">
