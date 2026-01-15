@@ -43,10 +43,8 @@ jobs:
         run: |
           VERSION="${{ github.event.inputs.version }}"
           sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
           sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" context_nexus/__init__.py
-
-      - name: Build Rust extension
-        run: maturin build --release
 
       - name: Build Python package
         run: python -m build

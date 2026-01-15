@@ -55,6 +55,7 @@ Repository = "https://github.com/chiraag-kakar/context-nexus"
 [tool.maturin]
 module-name = "context_nexus._core"
 features = ["pyo3/extension-module"]
+include = ["crates/**/*"]
 
 [tool.ruff]
 target-version = "py310"
