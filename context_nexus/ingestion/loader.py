@@ -31,7 +31,11 @@ class Loader:
     ALL_EXTENSIONS = TEXT_EXTENSIONS | BINARY_EXTENSIONS | HTML_EXTENSIONS
 
     def __init__(self):
-        self.client = httpx.AsyncClient(timeout=30.0, follow_redirects=True)
+        self.client = httpx.AsyncClient(
+            timeout=30.0, 
+            follow_redirects=True,
+            headers={"User-Agent": "ContextNexus/0.1.0 (contact: your-email@example.com)"}
+        )
         self._pdf_available = self._check_pdf_support()
 
     def _check_pdf_support(self) -> bool:

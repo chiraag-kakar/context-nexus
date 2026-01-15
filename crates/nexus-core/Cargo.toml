@@ -5,7 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [lib]
-name = "nexus_core"
+name = "_core"
 crate-type = ["cdylib"]
 
 [dependencies]

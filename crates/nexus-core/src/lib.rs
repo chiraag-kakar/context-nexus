@@ -37,7 +37,7 @@ fn chunk_text(text: &str, chunk_size: usize, overlap: usize) -> PyResult<Vec<Str
 }
 
 #[pymodule]
-fn nexus_core(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(count_tokens, m)?)?;
     m.add_function(wrap_pyfunction!(score_vectors, m)?)?;
     m.add_function(wrap_pyfunction!(fuse_scores, m)?)?;
