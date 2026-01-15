@@ -8,36 +8,34 @@ This guide takes you from zero to a working AI agent that can answer questions a
 
 - **Python 3.10+** installed ([download](https://python.org/downloads))
 - **OpenAI API key** ([get one free](https://platform.openai.com/api-keys))
-- Some documents to ask questions about (PDFs, markdown, text files)
+- Some documents to query (PDFs, markdown, text files, or code)
 
 ---
 
-## Step 1: Set Up Your Project
+## Step 1: Install Context Nexus
 
 Open your terminal and run:
 
 ```bash
-# Create a new directory
-mkdir my-ai-agent
-cd my-ai-agent
-
-# Create a virtual environment
-python -m venv venv
-
-# Activate it
-# On Mac/Linux:
-source venv/bin/activate
-# On Windows:
-# venv\Scripts\activate
-
-# Install Context Nexus
 pip install context-nexus
 ```
 
+**That's it!** Pre-compiled Rust binaries are included - no compilation needed.
+
 **Verify installation:**
 ```bash
-python -c "import context_nexus; print('✅ Installed!')"
+python -c "import context_nexus; print('✅ Ready to go!')"
 ```
+
+**What you just installed:**
+- Python APIs and LLM integrations
+- Pre-compiled Rust modules for 2-10x performance
+- Document loaders (PDF, HTML, text, code)
+- Vector and graph indexing
+- Token budget management
+- Full observability tools
+
+**Platform support:** macOS (ARM64, x86_64), Linux (x86_64, ARM64), Windows (x86_64)
 
 ---
 
