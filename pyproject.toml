@@ -7,14 +7,20 @@ name = "context-nexus"
 version = "0.1.0"
 description = "SDK for building agentic AI systems"
 readme = "README.md"
-license = {file = "LICENSE"}
 requires-python = ">=3.10"
-authors = [{name = "Chiraag Kakar", email = "connect.with.chiraag@gmail.com"}]
+license = { text = "MIT" }
+
+authors = [
+    { name = "Chiraag Kakar", email = "connect.with.chiraag@gmail.com" }
+]
+
 keywords = ["ai", "llm", "rag", "agents"]
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -27,7 +33,6 @@ dependencies = [
     "tenacity>=8.0",
     "anyio>=4.0",
     "numpy>=1.24",
-    "faiss-cpu>=1.7",
     "networkx>=3.0",
     "openai>=1.0",
     "tiktoken>=0.5",
@@ -37,6 +42,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+vector = ["faiss-cpu>=1.7"]
+local = ["sentence-transformers>=2.2"]
+production = [
+    "qdrant-client>=1.7",
+    "neo4j>=5.0",
+    "redis>=5.0",
+]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21",
@@ -45,8 +57,6 @@ dev = [
     "mypy>=1.0",
     "maturin>=1.4",
 ]
-local = ["sentence-transformers>=2.2"]
-production = ["qdrant-client>=1.7", "neo4j>=5.0", "redis>=5.0"]
 
 [project.urls]
 Homepage = "https://github.com/chiraag-kakar/context-nexus"
@@ -54,7 +64,9 @@ Repository = "https://github.com/chiraag-kakar/context-nexus"
 
 [tool.maturin]
 module-name = "context_nexus._core"
+bindings = "pyo3"
 features = ["pyo3/extension-module"]
+sdist = true
 
 [tool.ruff]
 target-version = "py310"
