@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g., 0.1.0)'
+        required: true
+        type: string
+      repository:
+        description: 'Target'
+        required: true
+        type: choice
+        options:
+          - testpypi
+          - pypi
+        default: testpypi
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Install build tools
+        run: |
+          pip install --upgrade pip
+          pip install build twine maturin
+
+      - name: Update version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+          sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" context_nexus/__init__.py
+
+      - name: Build Rust extension
+        run: maturin build --release
+
+      - name: Build Python package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Upload to TestPyPI
+        if: github.event.inputs.repository == 'testpypi'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
+        run: twine upload --repository testpypi dist/*
+
+      - name: Upload to PyPI
+        if: github.event.inputs.repository == 'pypi'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
+
+      - name: Create GitHub Release
+        if: github.event.inputs.repository == 'pypi'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          files: dist/*
+          generate_release_notes: true
+          body: |
+            ## Release ${{ github.event.inputs.version }}
+
+            ```bash
+            pip install context-nexus==${{ github.event.inputs.version }}
+            ```
