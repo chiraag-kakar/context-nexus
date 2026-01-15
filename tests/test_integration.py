@@ -1,6 +1,6 @@
 """Integration tests - works without external APIs in CI."""
 
-import pytest
+
 from context_nexus.core.types import Document, Chunk
 from context_nexus.ingestion import Chunker, VectorIndexer, GraphIndexer
 

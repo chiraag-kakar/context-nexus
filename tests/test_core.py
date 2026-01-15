@@ -1,5 +1,4 @@
-import pytest
-from context_nexus.core.types import Document, Chunk, Answer, Source
+from context_nexus.core.types import Document, Answer, Source
 from context_nexus.core.config import Config
 
 

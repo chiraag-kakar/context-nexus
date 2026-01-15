@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import Literal
-from context_nexus.core.types import Chunk
 
 try:
     from context_nexus._core import fuse_scores  # type: ignore

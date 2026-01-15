@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
@@ -86,10 +86,10 @@ class ContextNexus:
             await embedder.close()
         
         # Step 4: Index into vector store
-        added = self._vector_indexer.add_chunks(chunks)
+        self._vector_indexer.add_chunks(chunks)
         
         # Step 5: Index into graph store
-        graph_added = self._graph_indexer.add_chunks(chunks)
+        self._graph_indexer.add_chunks(chunks)
         self._stats.graph_nodes = self._graph_indexer.total_nodes
         self._stats.graph_edges = self._graph_indexer.total_edges
         

@@ -41,7 +41,6 @@ class Loader:
     def _check_pdf_support(self) -> bool:
         """Check if PDF parsing is available."""
         try:
-            import pypdf
             return True
         except ImportError:
             return False
@@ -95,7 +94,7 @@ class Loader:
                 return await self._load_html_file(file_path)
             else:
                 return await self._load_text_file(file_path)
-        except Exception as e:
+        except Exception:
             # Log but continue on errors
             return None
 

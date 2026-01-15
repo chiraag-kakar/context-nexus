@@ -3,7 +3,7 @@
 
 import asyncio
 from context_nexus import ContextNexus, Agent
-from context_nexus.core.types import Document, Answer, Source, Trace
+from context_nexus.core.types import Document, Trace
 from context_nexus.core.config import Config, EmbeddingConfig
 
 async def test_observability():
@@ -47,7 +47,7 @@ async def test_observability():
         results = await nexus.retrieve("What is Python?", limit=10)
         
         print(f"\n✅ Retrieved {len(results)} chunks")
-        print(f"\n📊 Retrieval Results:")
+        print("\n📊 Retrieval Results:")
         
         for i, result in enumerate(results[:5], 1):
             print(f"\n   Chunk {i}:")
@@ -57,7 +57,7 @@ async def test_observability():
             print(f"      Source: {result.source}")
             print(f"      Metadata: {result.metadata}")
             
-        print(f"\n✅ Retrieval works - observability can capture these steps!")
+        print("\n✅ Retrieval works - observability can capture these steps!")
         
     except Exception as e:
         print(f"\n❌ Error during retrieval: {e}")
@@ -90,11 +90,11 @@ async def test_observability():
             chunks_retrieved=5,
         )
         
-        print(f"\n✅ Trace object created successfully:")
+        print("\n✅ Trace object created successfully:")
         print(f"   Total latency: {trace_obj.latency_ms}ms")
         print(f"   Tokens used: {trace_obj.tokens_used}")
         print(f"   Chunks retrieved: {trace_obj.chunks_retrieved}")
-        print(f"\n   Execution steps:")
+        print("\n   Execution steps:")
         for step in trace_obj.steps:
             print(f"     - {step['name']}: {step['duration_ms']:.1f}ms", end="")
             if 'chunks_found' in step:
@@ -102,7 +102,7 @@ async def test_observability():
             else:
                 print()
                 
-        print(f"\n✅ Trace data structures work correctly!")
+        print("\n✅ Trace data structures work correctly!")
         
     except Exception as e:
         print(f"\n❌ Error creating trace: {e}")

@@ -51,7 +51,7 @@ class Embedder:
                 model_name = "all-MiniLM-L6-v2"  # 384 dimensions, fast
                 print(f"  Loading local embedding model: {model_name}...")
                 self._local_model = SentenceTransformer(model_name)
-                print(f"  ✓ Model loaded successfully")
+                print("  ✓ Model loaded successfully")
             except ImportError:
                 raise ImportError(
                     "sentence-transformers not installed. "
@@ -101,7 +101,7 @@ class Embedder:
         for i in range(0, len(chunks), batch_size):
             # Aggressive pause for rate-limited accounts
             if i > 0:
-                print(f"  (Rate limit pause: 20s...)")
+                print("  (Rate limit pause: 20s...)")
                 await asyncio.sleep(21)
                 
             batch = chunks[i:i + batch_size]

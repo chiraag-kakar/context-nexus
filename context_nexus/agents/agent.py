@@ -96,7 +96,8 @@ class Agent:
         try:
             from context_nexus._core import count_tokens  # type: ignore
         except ImportError:
-            count_tokens = lambda text, model: len(text.split())
+            def count_tokens(text: str, model: str) -> int:
+                return len(text.split())
         
         # Truncate context if needed
         context_tokens = count_tokens(context, "gpt-4")
