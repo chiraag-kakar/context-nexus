@@ -1,0 +1,5 @@
+recursive-include crates *
+include Cargo.toml
+include pyproject.toml
+include README.md
+include LICENSE
