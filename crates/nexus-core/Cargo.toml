@@ -1,0 +1,13 @@
+[package]
+name = "nexus-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "nexus_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3.workspace = true
+rayon.workspace = true
