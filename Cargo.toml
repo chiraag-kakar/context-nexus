@@ -3,10 +3,9 @@ name = "context-nexus"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-include = ["crates/**/*", "Cargo.toml", "pyproject.toml", "README.md", "LICENSE"]
-
+ 
 [lib]
-name = "context_nexus"
+name = "_core"
 crate-type = ["cdylib"]
 path = "crates/nexus-core/src/lib.rs"
 
