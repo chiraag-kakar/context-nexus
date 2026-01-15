@@ -1,12 +1,8 @@
 """
-Complete Workflow Example 1: Document Q&A Agent with Full Lifecycle
+Full-featured example showing document ingestion, retrieval, and agent queries.
 
-This example demonstrates:
-- Document loading and ingestion
-- Vectorization with OpenAI embeddings
-- Semantic and graph-based search
-- Token budget management
-- Source attribution and tracing
+This covers the complete workflow: loading docs, vectorizing them, searching,
+and getting answers with full tracing and source attribution.
 """
 
 import asyncio
@@ -22,19 +18,16 @@ async def main():
     print("=" * 70)
     print()
     
-    # ===================================================================
-    # PHASE 1: INITIALIZATION
-    # ===================================================================
-    print("📋 PHASE 1: INITIALIZATION")
-    print("-" * 70)
-    
-    # Ensure API key is set
+    # Make sure we have an API key
     if not os.getenv("OPENAI_API_KEY"):
         print("⚠️  Warning: OPENAI_API_KEY not set. Set it to use embeddings.")
         print("   export OPENAI_API_KEY='your-key-here'")
         return
     
-    # Create ContextNexus with configuration
+    # ---- INITIALIZATION ----
+    print("📋 PHASE 1: INITIALIZATION")
+    print("-" * 70)
+    
     nexus = ContextNexus(
         vector_store="faiss",      # Local FAISS for development
         graph_store="networkx",    # In-memory graph
@@ -50,13 +43,11 @@ async def main():
     print(f"   Chunk Overlap: {nexus.config.chunk_overlap} tokens")
     print()
     
-    # ===================================================================
-    # PHASE 2: DATA INGESTION
-    # ===================================================================
+    # ---- DATA INGESTION ----
     print("📁 PHASE 2: DATA INGESTION")
     print("-" * 70)
     
-    # Create sample documents
+    # Create sample documents to work with
     sample_docs = [
         Document(
             content="""
@@ -176,7 +167,7 @@ async def main():
     print(f"📄 Ingesting {len(sample_docs)} documents...")
     print()
     
-    # Ingest documents (full 5-step pipeline)
+    # The full 5-step pipeline happens here: load → chunk → embed → index → graph
     stats = await nexus.ingest(sample_docs)
     
     print(f"✅ Ingestion complete!")
@@ -186,9 +177,7 @@ async def main():
     print(f"   Graph edges: {stats.graph_edges}")
     print()
     
-    # ===================================================================
-    # PHASE 3: SEMANTIC SEARCH & RETRIEVAL
-    # ===================================================================
+    # ---- SEMANTIC SEARCH & RETRIEVAL ----
     print("🔍 PHASE 3: SEMANTIC SEARCH & RETRIEVAL")
     print("-" * 70)
     
@@ -196,7 +185,7 @@ async def main():
     print(f"Query: '{test_query}'")
     print()
     
-    # Test retrieval (hybrid: vector + graph)
+    # This does hybrid search: vector + graph
     results = await nexus.retrieve(test_query, limit=5)
     
     print(f"✅ Retrieved {len(results)} chunks")
@@ -207,23 +196,18 @@ async def main():
         print(f"      {result.content[:120]}...")
     print()
     
-    # ===================================================================
-    # PHASE 4: AGENT QUERY WITH TOKEN MANAGEMENT
-    # ===================================================================
+    # ---- AGENT QUERY WITH TOKEN MANAGEMENT ----
     print("🤖 PHASE 4: AGENT QUERY WITH TOKEN MANAGEMENT")
     print("-" * 70)
     
     # Create agent with strict token budget
-    agent = Agent(
-        nexus,
-        token_budget=8000  # Hard limit: never exceed this
-    )
+    agent = Agent(nexus, token_budget=8000)  # Hard limit: never exceed this
     
     print(f"✅ Agent created with token budget: {agent.token_budget}")
     print()
     
     try:
-        # Query 1: Basic question
+        # Basic question
         print("Query 1: What is Context Nexus?")
         print()
         
@@ -236,7 +220,7 @@ async def main():
         print(f"  Sources: {len(answer1.sources)}")
         print()
         
-        # Query 2: With tracing for full visibility
+        # With tracing for full visibility
         print("Query 2: How do I get started? (with trace)")
         print()
         
@@ -262,9 +246,7 @@ async def main():
                     print(f"        (found {step['chunks_found']} chunks)")
             print()
         
-        # ===================================================================
-        # PHASE 5: SOURCE ATTRIBUTION
-        # ===================================================================
+        # ---- SOURCE ATTRIBUTION ----
         print("📚 PHASE 5: SOURCE ATTRIBUTION")
         print("-" * 70)
         
@@ -279,9 +261,7 @@ async def main():
                 print(f"      Excerpt: {source.excerpt[:80]}...")
             print()
         
-        # ===================================================================
-        # PHASE 6: SUMMARY & BEST PRACTICES
-        # ===================================================================
+        # ---- SUMMARY ----
         print("=" * 70)
         print("✅ WORKFLOW COMPLETE")
         print("=" * 70)
@@ -301,7 +281,6 @@ async def main():
         print()
         
     finally:
-        # Always cleanup
         await agent.close()
         print("🧹 Cleaned up resources")
 

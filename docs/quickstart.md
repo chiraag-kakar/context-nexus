@@ -231,7 +231,6 @@ async def ask(query: Query):
         "answer": answer.text,
         "sources": [
             {"title": s.title, "relevance": s.relevance}
-            for s in answer.sources
         ],
         "confidence": answer.confidence
     }

@@ -45,25 +45,73 @@ class ContextNexus:
         incremental: bool = True,
     ) -> Stats:
         """Ingest documents from paths, URLs, or Document objects."""
-        # TODO: implement full ingestion pipeline
+        from context_nexus.ingestion import Loader, Chunker, Embedder, VectorIndexer, GraphIndexer
+        
+        # Initialize components if not already done
+        if not self._initialized:
+            self._vector_indexer = VectorIndexer(dimensions=self.config.embedding.dimensions)
+            self._graph_indexer = GraphIndexer()
+            self._initialized = True
+        
+        # Step 1: Load documents
+        loader = Loader()
+        documents = []
+        
+        # Convert sources to async iterable
         for source in sources:
-            if isinstance(source, (str, Path)):
-                path = Path(source)
-                if path.is_dir():
-                    files = [f for f in path.rglob("*") if f.is_file() and not f.name.startswith(".")]
-                    self._stats.documents += len(files)
-                elif path.is_file():
-                    self._stats.documents += 1
-            elif isinstance(source, Document):
-                self._stats.documents += 1
-
-        # rough estimates for now
-        self._stats.chunks = self._stats.documents * 10
-        self._stats.graph_nodes = self._stats.documents * 5
-        self._initialized = True
+            if isinstance(source, Document):
+                documents.append(source)
+            else:
+                async for doc in loader.load([source]):
+                    documents.append(doc)
+        
+        if not documents:
+            return self._stats
+        
+        self._stats.documents += len(documents)
+        
+        # Step 2: Chunk documents
+        chunker = Chunker(
+            chunk_size=self.config.chunk_size,
+            chunk_overlap=self.config.chunk_overlap
+        )
+        chunks = chunker.chunk_documents(documents)
+        self._stats.chunks += len(chunks)
+        
+        # Step 3: Generate embeddings
+        embedder = Embedder(self.config.embedding, self.config.llm.api_key)
+        try:
+            chunks = await embedder.embed_chunks(chunks)
+        finally:
+            await embedder.close()
+        
+        # Step 4: Index into vector store
+        added = self._vector_indexer.add_chunks(chunks)
+        
+        # Step 5: Index into graph store
+        graph_added = self._graph_indexer.add_chunks(chunks)
+        self._stats.graph_nodes = self._graph_indexer.total_nodes
+        self._stats.graph_edges = self._graph_indexer.total_edges
+        
         return self._stats
 
     async def retrieve(self, query: str, limit: int = 20, mode: str = "hybrid"):
-        """Retrieve relevant chunks for a query."""
-        # TODO: implement retrieval
-        pass
+        """Retrieve relevant chunks for a query.
+        
+        Args:
+            query: Search query
+            limit: Maximum number of results
+            mode: Retrieval mode ("hybrid", "vector", "graph")
+            
+        Returns:
+            List of retrieval results
+        """
+        if not self._initialized:
+            raise ValueError("Must call ingest() before retrieve()")
+        
+        from context_nexus.retrieval import HybridRetriever
+        
+        retriever = HybridRetriever()
+        results = await retriever.retrieve(query, self, limit=limit)
+        
+        return results
