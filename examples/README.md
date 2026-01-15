@@ -51,6 +51,7 @@ echo "OPENAI_API_KEY=sk-..." > .env
 | [02_full_workflow.py](02_full_workflow.py) | Complete lifecycle with tracing | ⭐⭐ Intermediate |
 | [03_code_analysis.py](03_code_analysis.py) | Analyze codebases | ⭐⭐ Intermediate |
 | [04_research_agent.py](04_research_agent.py) | Iterative research workflow | ⭐⭐⭐ Advanced |
+| [05_benchmark.py](05_benchmark.py) | Performance at scale (100+ docs) | ⭐⭐⭐ Advanced |
 
 ---
 
@@ -90,6 +91,30 @@ python examples/04_research_agent.py
 ```
 
 Shows an iterative research workflow with confidence tracking and rate limiting.
+
+### Performance Benchmark
+```bash
+python examples/05_benchmark.py
+```
+
+**What it does**:
+- Generates 100 realistic documents (technical documentation)
+- Processes ~100KB of text
+- Runs search and query benchmarks
+- Provides production readiness assessment
+
+**Metrics reported**:
+- Ingestion throughput (docs/sec, chunks/sec)
+- Search latency (average, min, max)
+- Agent query latency
+- Token usage statistics
+
+**Run time**: ~60 seconds (including embeddings)
+
+**Use this to**:
+- Validate performance on your hardware
+- Estimate costs for your use case
+- Decide between local (FAISS) vs production (Qdrant) backends
 
 ---
 

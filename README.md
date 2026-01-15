@@ -89,6 +89,22 @@ asyncio.run(main())
 
 ---
 
+## Examples
+
+Ready-to-run examples in the [`examples/`](examples/) directory:
+
+| Example | What It Shows | Run Time |
+|---------|---------------|----------|
+| [01_simple_qa.py](examples/01_simple_qa.py) | Quick start in ~50 lines | ~5 sec |
+| [02_full_workflow.py](examples/02_full_workflow.py) | Complete lifecycle with tracing | ~15 sec |
+| [03_code_analysis.py](examples/03_code_analysis.py) | Analyze codebases | ~20 sec |
+| [04_research_agent.py](examples/04_research_agent.py) | Iterative research workflow | ~30 sec |
+| [05_benchmark.py](examples/05_benchmark.py) | Large-scale performance test | ~60 sec |
+
+**See [examples/README.md](examples/README.md)** for setup instructions and dependency explanations.
+
+---
+
 ## Documentation
 
 | Doc | Description |
