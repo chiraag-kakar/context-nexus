@@ -230,7 +230,7 @@ Context Nexus uses a 5-stage ingestion pipeline:
 ## Use Case Walkthroughs
 
 ### Use Case 1: Document Q&A
-**Example**: [`examples/workflow_1_document_qa.py`](../examples/workflow_1_document_qa.py)
+**Example**: [`examples/02_full_workflow.py`](../examples/02_full_workflow.py)
 
 Demonstrates complete lifecycle:
 - Document ingestion with stats
@@ -239,7 +239,7 @@ Demonstrates complete lifecycle:
 - Source attribution and tracing
 
 ### Use Case 2: Code Analysis
-**Example**: [`examples/workflow_2_code_analysis.py`](../examples/workflow_2_code_analysis.py)
+**Example**: [`examples/03_code_analysis.py`](../examples/03_code_analysis.py)
 
 Shows how to:
 - Ingest codebases with larger chunk sizes
@@ -248,7 +248,7 @@ Shows how to:
 - Multi-step reasoning workflows
 
 ### Use Case 3: Research & Synthesis
-**Example**: [`examples/workflow_3_research_synthesis.py`](../examples/workflow_3_research_synthesis.py)
+**Example**: [`examples/04_research_agent.py`](../examples/04_research_agent.py)
 
 Illustrates:
 - Iterative research with confidence tracking

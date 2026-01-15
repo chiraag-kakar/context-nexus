@@ -2,6 +2,12 @@
 
 This guide shows you how to build real-world agentic AI systems using Context Nexus.
 
+> **💡 Tip**: Check out the [examples/](../examples/) directory for working code you can run right now!
+> - [01_simple_qa.py](../examples/01_simple_qa.py) - Quick start
+> - [02_full_workflow.py](../examples/02_full_workflow.py) - Complete lifecycle  
+> - [03_code_analysis.py](../examples/03_code_analysis.py) - Code understanding
+> - [04_research_agent.py](../examples/04_research_agent.py) - Research workflows
+
 ---
 
 ## What is an Agentic Workflow?
