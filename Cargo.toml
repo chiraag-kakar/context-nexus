@@ -1,12 +1,14 @@
-[workspace]
-members = ["crates/nexus-core"]
-resolver = "2"
-
-[workspace.package]
+[package]
+name = "context-nexus"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
 
-[workspace.dependencies]
+[lib]
+name = "context_nexus"
+crate-type = ["cdylib"]
+path = "crates/nexus-core/src/lib.rs"
+
+[dependencies]
 pyo3 = { version = "0.20", features = ["extension-module"] }
 rayon = "1.8"
