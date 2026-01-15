@@ -21,11 +21,37 @@ pip install context-nexus
 pip install -e .
 ```
 
-### 3. OpenAI API Key (Required for Examples 01-04)
+### 3. OpenAI API Key (Required for Examples 01-05)
 
 All current examples use OpenAI for embeddings and LLM generation.
 
 **Get a key**: https://platform.openai.com/api-keys
+
+**Set it up**:
+```bash
+# Mac/Linux
+export OPENAI_API_KEY='sk-...'
+
+# Windows
+set OPENAI_API_KEY=sk-...
+
+# Or create a .env file
+echo "OPENAI_API_KEY=sk-..." > .env
+```
+
+**Cost**: OpenAI offers $5 in free credits for new accounts. Each example run costs ~$0.01-0.05.
+
+---
+
+## Examples Overview
+
+| Example | What It Shows | Data Source | Complexity |
+|---------|---------------|-------------|------------|
+| [01_simple_qa.py](01_simple_qa.py) | Basic Q&A in ~50 lines | Inline text | ⭐ Simple |
+| [02_full_workflow.py](02_full_workflow.py) | Complete lifecycle with tracing | Inline docs | ⭐⭐ Intermediate |
+| [03_code_analysis.py](03_code_analysis.py) | Analyze codebases | Local Python files | ⭐⭐ Intermediate |
+| [04_research_agent.py](04_research_agent.py) | Iterative research workflow | Generated corpus | ⭐⭐⭐ Advanced |
+| [05_benchmark.py](05_benchmark.py) | **Performance vs baseline** | **Wikipedia + arXiv** | ⭐⭐⭐ Advanced |
 
 **Set it up**:
 ```bash

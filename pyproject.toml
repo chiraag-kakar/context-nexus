@@ -33,6 +33,7 @@ dependencies = [
     "tiktoken>=0.5",
     "python-dotenv>=1.0",
     "rich>=13.0",
+    "pypdf>=3.0",
 ]
 
 [project.optional-dependencies]
