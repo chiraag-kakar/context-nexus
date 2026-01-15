@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/feature_overview.png" alt="Context Nexus" width="500">
+  <img src="docs/images/feature_overview.png" alt="Context Nexus" width="400">
 </p>
 
 <h1 align="center">Context Nexus</h1>
@@ -28,20 +28,13 @@
 Build AI applications that can search, reason, and answer questions over your documents.
 
 <p align="center">
-  <img src="docs/images/how_it_works.png" alt="How it works" width="600">
+  <img src="docs/images/how_it_works.png" alt="How it works" width="500">
 </p>
 
 ```python
-from context_nexus import ContextNexus, Agent
-
-nexus = ContextNexus()
-await nexus.ingest(["./docs/"])
-
-agent = Agent(nexus)
+agent = Agent(ContextNexus())
 answer = await agent.query("What services depend on payments?")
-
-print(answer.text)     # Answer
-print(answer.sources)  # Citations
+print(answer.text, answer.sources)  # Answer with citations
 ```
 
 ---
