@@ -3,6 +3,10 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: 'Version (e.g., 0.1.0)'
+        required: true
+        type: string
       repository:
         description: 'Target'
         required: true
@@ -27,39 +31,34 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install build tools
+      - name: Update version
         run: |
-          pip install --upgrade pip
-          pip install build twine maturin tomli
+          VERSION="${{ github.event.inputs.version }}"
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+          sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" context_nexus/__init__.py
 
-      - name: Build Python package
-        run: python -m build
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release --out dist --interpreter python3.12
+          manylinux: auto
 
-      - name: Check package
-        run: twine check dist/*
+      - name: Build sdist
+        run: |
+          pip install build maturin
+          python -m build --sdist
 
       - name: List built packages
         run: |
           echo "=== Built packages ==="
           ls -lh dist/
-          echo ""
-          echo "=== Package metadata ==="
-          python -c "import tomli; f=open('pyproject.toml','rb'); data=tomli.load(f); print(f\"Name: {data['project']['name']}\"); print(f\"Version: {data['project']['version']}\")"
 
-      - name: Check for existing version on TestPyPI
-        if: github.event.inputs.repository == 'testpypi'
+      - name: Check package
         run: |
-          VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          echo "Checking if version $VERSION exists on TestPyPI..."
-          if curl -s https://test.pypi.org/pypi/context-nexus/$VERSION/json | grep -q "\"version\":\"$VERSION\""; then
-            echo "ERROR: Version $VERSION already exists on TestPyPI!"
-            exit 1
-          else
-            echo "Version $VERSION is available for upload"
-          fi
+          pip install twine
+          twine check dist/*
 
       - name: Upload to TestPyPI
         if: github.event.inputs.repository == 'testpypi'
@@ -75,23 +74,16 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload dist/*
 
-      - name: Extract version
-        if: github.event.inputs.repository == 'pypi'
-        id: get_version
-        run: |
-          VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
       - name: Create GitHub Release
         if: github.event.inputs.repository == 'pypi'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.get_version.outputs.version }}
+          tag_name: v${{ github.event.inputs.version }}
           files: dist/*
           generate_release_notes: true
           body: |
-            ## Release ${{ steps.get_version.outputs.version }}
+            ## Release ${{ github.event.inputs.version }}
 
             ```bash
-            pip install context-nexus==${{ steps.get_version.outputs.version }}
+            pip install context-nexus==${{ github.event.inputs.version }}
             ```
