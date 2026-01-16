@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,local]"
+          pip install -e ".[dev,local,vector]"
 
       - name: Lint
         run: ruff check context_nexus tests
