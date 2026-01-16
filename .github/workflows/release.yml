@@ -33,7 +33,7 @@ jobs:
       - name: Install build tools
         run: |
           pip install --upgrade pip
-          pip install build twine maturin
+          pip install build twine maturin tomli
 
       - name: Build Python package
         run: python -m build
@@ -41,12 +41,32 @@ jobs:
       - name: Check package
         run: twine check dist/*
 
+      - name: List built packages
+        run: |
+          echo "=== Built packages ==="
+          ls -lh dist/
+          echo ""
+          echo "=== Package metadata ==="
+          python -c "import tomli; f=open('pyproject.toml','rb'); data=tomli.load(f); print(f\"Name: {data['project']['name']}\"); print(f\"Version: {data['project']['version']}\")"
+
+      - name: Check for existing version on TestPyPI
+        if: github.event.inputs.repository == 'testpypi'
+        run: |
+          VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "Checking if version $VERSION exists on TestPyPI..."
+          if curl -s https://test.pypi.org/pypi/context-nexus/$VERSION/json | grep -q "\"version\":\"$VERSION\""; then
+            echo "ERROR: Version $VERSION already exists on TestPyPI!"
+            exit 1
+          else
+            echo "Version $VERSION is available for upload"
+          fi
+
       - name: Upload to TestPyPI
         if: github.event.inputs.repository == 'testpypi'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
-        run: twine upload --repository testpypi dist/*
+        run: twine upload --verbose --repository testpypi dist/*
 
       - name: Upload to PyPI
         if: github.event.inputs.repository == 'pypi'
