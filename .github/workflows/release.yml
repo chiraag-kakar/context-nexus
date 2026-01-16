@@ -3,10 +3,6 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version (e.g., 0.1.0)'
-        required: true
-        type: string
       repository:
         description: 'Target'
         required: true
@@ -39,13 +35,6 @@ jobs:
           pip install --upgrade pip
           pip install build twine maturin
 
-      - name: Update version
-        run: |
-          VERSION="${{ github.event.inputs.version }}"
-          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" pyproject.toml
-          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
-          sed -i "s/^__version__ = \".*\"/__version__ = \"$VERSION\"/" context_nexus/__init__.py
-
       - name: Build Python package
         run: python -m build
 
@@ -66,16 +55,23 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload dist/*
 
+      - name: Extract version
+        if: github.event.inputs.repository == 'pypi'
+        id: get_version
+        run: |
+          VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         if: github.event.inputs.repository == 'pypi'
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.event.inputs.version }}
+          tag_name: v${{ steps.get_version.outputs.version }}
           files: dist/*
           generate_release_notes: true
           body: |
-            ## Release ${{ github.event.inputs.version }}
+            ## Release ${{ steps.get_version.outputs.version }}
 
             ```bash
-            pip install context-nexus==${{ github.event.inputs.version }}
+            pip install context-nexus==${{ steps.get_version.outputs.version }}
             ```

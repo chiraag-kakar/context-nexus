@@ -1,6 +1,6 @@
 """Context Nexus - SDK for building agentic AI systems."""
 
-__version__ = "0.0.0"
+__version__ = "1.0.4"
 
 from context_nexus.core.config import Config
 from context_nexus.core.types import Document, Chunk, Answer
